@@ -60,9 +60,9 @@ def generate_random_butterflies(n):
         for _ in range(number_of_shapes):
             shape = generate_random_shape()
             shapes.append(shape)
-        butterfly = Butterfly(np.random.randint(1,9), bool(np.random.randint(0,2)), np.random.randint(32, 256), shapes)
+        butterfly = Butterfly(np.random.randint(1,9), bool(np.random.randint(0,2)), np.random.randint(100, 256), shapes)
         butterflies.append(butterfly)
     return butterflies
 
 def generate_random_shape():
-    return Shape(random.choice(list(ShapeName)), np.random.randint(32,256), (np.random.randint(0, 257), np.random.randint(0, 257)), np.random.random()/2)
+    return Shape(random.choice(list(ShapeName)), np.random.randint(100,256), (np.random.randint(0, 257), np.random.randint(0, 257)), np.random.random()/2)

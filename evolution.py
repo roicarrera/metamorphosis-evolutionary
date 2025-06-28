@@ -3,27 +3,39 @@ import random
 from copy import deepcopy
 import cv2 as cv
 import os
+import matplotlib.pyplot as plt
 
 from Butterfly import Butterfly
 from Shape import Shape, ShapeName
 from butterfly_generator import generate_butterfly_img, generate_random_shape, generate_random_butterflies
 
 global MAX_INDIVIDUALS
-MAX_INDIVIDUALS = 100
+MAX_INDIVIDUALS = 300
 
 def evolve(n, butterflies, objective):
-    for _ in range(n):
+    max_fitness = []
+    avg_fitness = []
+    for i in range(n):
         evaluated_butterflies = evaluate(butterflies, objective)
-        selected_butterflies = select_fittest(evaluated_butterflies, 0.3)
-        crossover_butterflies = crossover(selected_butterflies, 0.95)
-        mutated_butterflies = mutate(crossover_butterflies, 0.3)
+        selected_butterflies = select_fittest(evaluated_butterflies, 0.1)
+        crossover_butterflies = crossover(selected_butterflies, 0.60)
+        mutated_butterflies = mutate(crossover_butterflies, 0.7)
+        max_fitness.append(max([x[1] for x in mutated_butterflies]))
+        avg_fitness.append(sum(x[1] for x in mutated_butterflies) / len(mutated_butterflies))
         butterflies = refill(mutated_butterflies)
-    path = os.path.join('images', f"final_result.png")
-    result_img = generate_butterfly_img(butterflies[0])
-    cv.imwrite(path, result_img)
+        print(f'Finished iteration {i} of {n}')
+    final_evaluation = evaluate(butterflies, objective)
+    final_evaluation = sorted(final_evaluation, key=lambda item: item[1], reverse=True)
+    for i in range(10):
+        path = os.path.join('images', f"final_result{i}.png")
+        result_img = generate_butterfly_img(final_evaluation[i][0])
+        print(f'Evaluation of butterfly number {i}: {final_evaluation[i][1]}')
+        cv.imwrite(path, result_img)
+    plt.plot(avg_fitness, color='green', label='Average fitness')
+    plt.plot(max_fitness, color='red', label='Max fitness')
+    plt.show()
 
 def fitness_function(objective: Butterfly, candidate: Butterfly):
-
     objective_f = objective.astype(np.float32)
     candidate_f = candidate.astype(np.float32)
     mse = -np.mean((objective_f - candidate_f) ** 2)
@@ -78,13 +90,13 @@ def crossover_shapes(shapes1: list[Shape], shapes2: list[Shape]) -> list[Shape]:
 def mutate(butterflies: list[(Butterfly, float)], mutation_rate: float):
     for butterfly in butterflies:
         if random.random() < mutation_rate and butterfly[1] != 0:
-            if random.random() < 0.5:
+            if random.random() < mutation_rate:
                 butterfly[0].contour = np.random.randint(1,9)
-            if random.random() < 0.5:
+            if random.random() < mutation_rate:
                 butterfly[0].symmetry = bool(np.random.randint(0,2))
-            if random.random() < 0.5:
-                butterfly[0].bg_color =  min(255, max(32, butterfly[0].bg_color + random.randint(-30, 30)))
-            if random.random() < 0.5:
+            if random.random() < mutation_rate:
+                butterfly[0].bg_color =  min(255, max(100, butterfly[0].bg_color + random.randint(-30, 30)))
+            if random.random() < mutation_rate:
                 butterfly[0].shapes = mutate_shapes(butterfly[0].shapes, mutation_rate)
     return butterflies
 

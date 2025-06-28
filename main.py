@@ -3,7 +3,7 @@ import evolution
 import os
 
 global MAX_INDIVIDUALS
-MAX_INDIVIDUALS = 100
+MAX_INDIVIDUALS = 300
 
 if __name__ == '__main__':
     butterflies = generate_random_butterflies(MAX_INDIVIDUALS)
@@ -11,4 +11,4 @@ if __name__ == '__main__':
     objective_img = generate_butterfly_img(objective[0])
     path = os.path.join('images', f"result.png")
     cv.imwrite(path, objective_img)
-    evolution.evolve(100, butterflies, objective[0])
+    evolution.evolve(300, butterflies, objective[0])

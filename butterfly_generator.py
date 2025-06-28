@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import os
 import matplotlib.pyplot as plt
+import random
 
 from Butterfly import Butterfly
 from Shape import Shape, ShapeName
@@ -49,13 +50,19 @@ def generate_butterfly_img(butterfly):
 
     mask = cv.imread(os.path.join('images', f"mask{butterfly.contour}.png"), 0)
     butterfly_img = cv.bitwise_and(base_img, mask)
-
-    plt.imshow(butterfly_img, cmap='gray', vmin=0, vmax=255)
-    plt.show()
     return butterfly_img
 
-if __name__ == '__main__':
-    shape = Shape(shape_type=ShapeName.PENTAGON, intensity=80, coordinates=(160, 160), size=0.2)
-    shape2 = Shape(shape_type=ShapeName.TRIANGLE, intensity=150, coordinates=(160, 160), size=0.1)
-    butterfly = Butterfly(contour=1, symmetry=False, bg_color=128, shapes=[shape, shape2])
-    generate_butterfly_img(butterfly)
+def generate_random_butterflies(n):
+    butterflies = []
+    for _ in range(n):
+        number_of_shapes = np.random.randint(1, 11)
+        shapes = []
+        for _ in range(number_of_shapes):
+            shape = generate_random_shape()
+            shapes.append(shape)
+        butterfly = Butterfly(np.random.randint(1,9), bool(np.random.randint(0,2)), np.random.randint(32, 256), shapes)
+        butterflies.append(butterfly)
+    return butterflies
+
+def generate_random_shape():
+    return Shape(random.choice(list(ShapeName)), np.random.randint(32,256), (np.random.randint(0, 257), np.random.randint(0, 257)), np.random.random()/2)

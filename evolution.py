@@ -23,7 +23,10 @@ def evolve(n, butterflies, objective):
     cv.imwrite(path, result_img)
 
 def fitness_function(objective: Butterfly, candidate: Butterfly):
-    mse = -np.mean((objective - candidate) ** 2)
+
+    objective_f = objective.astype(np.float32)
+    candidate_f = candidate.astype(np.float32)
+    mse = -np.mean((objective_f - candidate_f) ** 2)
     return mse
 
 def evaluate(butterflies: list[Butterfly], objective: Butterfly):

@@ -7,7 +7,7 @@ class ShapeName(Enum):
     PENTAGON = 'pentagon'
 
 class Shape():
-    def __init__(self, shape_type: ShapeName, intensity: int, coordinates: tuple[int, int], size: float):
+    def __init__(self, shape_type: ShapeName, intensity: tuple[int, int, int], coordinates: tuple[int, int], size: float):
         self.shape_type = shape_type
         self.intensity = intensity
         self.coordinates = coordinates

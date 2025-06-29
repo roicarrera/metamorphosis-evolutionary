@@ -9,18 +9,17 @@ from Butterfly import Butterfly
 from Shape import Shape, ShapeName
 from butterfly_generator import generate_butterfly_img, generate_random_shape, generate_random_butterflies
 
-global MAX_INDIVIDUALS
-MAX_INDIVIDUALS = 300
-
-def evolve(n, butterflies, objective):
+def evolve(n, butterflies, objective, max_individuals):
+    global MAX_INDIVIDUALS
+    MAX_INDIVIDUALS = max_individuals
     max_fitness = []
     avg_fitness = []
     for i in range(n):
         evaluated_butterflies = evaluate(butterflies, objective)
-        selected_butterflies = select_fittest(evaluated_butterflies, 0.1)
-        crossover_butterflies = crossover(selected_butterflies, 0.60)
-        mutated_butterflies = mutate(crossover_butterflies, 0.7)
-        max_fitness.append(max([x[1] for x in mutated_butterflies]))
+        selected_butterflies = select_fittest(evaluated_butterflies, 0.2)
+        crossover_butterflies = crossover(selected_butterflies, 0.50)
+        mutated_butterflies = mutate(crossover_butterflies, 0.8)
+        max_fitness.append(max([x[1] for x in mutated_butterflies if x[1] != 0]))
         avg_fitness.append(sum(x[1] for x in mutated_butterflies) / len(mutated_butterflies))
         butterflies = refill(mutated_butterflies)
         print(f'Finished iteration {i} of {n}')
@@ -41,11 +40,14 @@ def fitness_function(objective: Butterfly, candidate: Butterfly):
     mse = -np.mean((objective_f - candidate_f) ** 2)
     return mse
 
-def evaluate(butterflies: list[Butterfly], objective: Butterfly):
+def evaluate(butterflies: list[Butterfly], objective):
+    if isinstance(objective, Butterfly):
+        objective_img = generate_butterfly_img(objective)
+    else:
+        objective_img = objective
     results = []
     for butterfly in butterflies:
         butterfly_img = generate_butterfly_img(butterfly)
-        objective_img = generate_butterfly_img(objective)
         result = fitness_function(objective_img, butterfly_img)
         results.append((butterfly, result))
     return results
@@ -59,7 +61,7 @@ def crossover(butterflies: list[(Butterfly, float)], new_ratio: float):
         b1, b2 = random.sample(butterflies, 2)
         contour = max([b1, b2], key=lambda x: x[1])[0].contour
         symmetry = max([b1, b2], key=lambda x: x[1])[0].symmetry
-        bg_color = (b1[0].bg_color + b2[0].bg_color) // 2
+        bg_color = tuple(((np.array(b1[0].bg_color) + np.array(b2[0].bg_color)) // 2).astype(np.uint8))
         shapes = crossover_shapes(b1[0].shapes, b2[0].shapes)
         b3 = Butterfly(contour, symmetry, bg_color, shapes)
         butterflies.append((b3, 0.0))
@@ -95,7 +97,7 @@ def mutate(butterflies: list[(Butterfly, float)], mutation_rate: float):
             if random.random() < mutation_rate:
                 butterfly[0].symmetry = bool(np.random.randint(0,2))
             if random.random() < mutation_rate:
-                butterfly[0].bg_color =  min(255, max(100, butterfly[0].bg_color + random.randint(-30, 30)))
+                butterfly[0].bg_color =  tuple(min(255, max(0, int(c) + random.randint(-30, 30))) for c in butterfly[0].bg_color)
             if random.random() < mutation_rate:
                 butterfly[0].shapes = mutate_shapes(butterfly[0].shapes, mutation_rate)
     return butterflies
@@ -107,7 +109,7 @@ def mutate_shape(shape: Shape, mutation_rate: float) -> Shape:
         new_shape.shape_type = random.choice(list(ShapeName))
 
     if random.random() < mutation_rate:
-        new_shape.intensity = min(255, max(0, new_shape.intensity + random.randint(-30, 30)))
+        new_shape.intensity = tuple(min(255, max(0, int(c) + random.randint(-30, 30))) for c in new_shape.intensity)
 
     if random.random() < mutation_rate:
         dx = random.randint(-10, 10)
@@ -126,7 +128,7 @@ def mutate_shapes(shapes: list[Shape], mutation_rate: float) -> list[Shape]:
     if random.random() < mutation_rate:
         if random.random() < 0.5 and len(mutated) > 1:
             mutated.pop(random.randint(0, len(mutated)-1))
-        else:
+        elif len(mutated) < 15:
             mutated.append(generate_random_shape())
 
     return mutated
